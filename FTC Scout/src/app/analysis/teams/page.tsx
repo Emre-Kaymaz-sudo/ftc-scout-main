@@ -50,7 +50,7 @@ export default function TeamsAnalysisPage() {
       // Calculate average score
       const totalScore = teamMatches.reduce((total, match) => {
         const scores = memoizedCalculateScore(match);
-        return total + scores.total;
+        return total + scores.totalScore;
       }, 0);
       
       const averageScore = teamMatches.length > 0 ? Math.round(totalScore / teamMatches.length) : 0;
