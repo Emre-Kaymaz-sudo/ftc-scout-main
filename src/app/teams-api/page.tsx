@@ -32,11 +32,22 @@ export default function TeamsApiPage() {
   
   const { toast } = useToast();
 
+  // Get the base path
+  const getBasePath = () => {
+    // In development, we don't need a base path
+    if (process.env.NODE_ENV === 'development') {
+      return '';
+    }
+    // In production, we use the basePath from next.config.js (if any)
+    return '';
+  };
+
   // API'den takımları getir
   useEffect(() => {
     const fetchTeams = async () => {
       try {
-        const response = await fetch('/api/data');
+        const basePath = getBasePath();
+        const response = await fetch(`${basePath}/api/data`);
         if (!response.ok) {
           throw new Error('API yanıt vermedi');
         }
@@ -65,7 +76,8 @@ export default function TeamsApiPage() {
     }
     
     try {
-      const response = await fetch('/api/data', {
+      const basePath = getBasePath();
+      const response = await fetch(`${basePath}/api/data`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

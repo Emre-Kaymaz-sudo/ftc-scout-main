@@ -38,19 +38,19 @@ export function TeamComparisonTable({ teamNumbers }: TeamComparisonTableProps) {
       const scores = teamMatches.map(match => memoizedCalculateScore(match));
       
       scoreDetails.autoAverage = Math.round(
-        scores.reduce((sum, score) => sum + score.auto, 0) / scores.length
+        scores.reduce((sum, score) => sum + score.autoScore, 0) / scores.length
       );
       
       scoreDetails.teleopAverage = Math.round(
-        scores.reduce((sum, score) => sum + score.teleop, 0) / scores.length
+        scores.reduce((sum, score) => sum + score.teleopScore, 0) / scores.length
       );
       
       scoreDetails.endgameAverage = Math.round(
-        scores.reduce((sum, score) => sum + score.endgame, 0) / scores.length
+        scores.reduce((sum, score) => sum + score.endgameScore, 0) / scores.length
       );
       
       scoreDetails.totalAverage = Math.round(
-        scores.reduce((sum, score) => sum + score.total, 0) / scores.length
+        scores.reduce((sum, score) => sum + score.totalScore, 0) / scores.length
       );
     }
     
