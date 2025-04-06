@@ -88,21 +88,21 @@ export default function TeamDetailPage() {
     const scores = teamMatches.map(match => memoizedCalculateScore(match));
     
     const totalScores = scores.reduce((acc, score) => ({
-      auto: acc.auto + score.auto,
-      teleop: acc.teleop + score.teleop,
-      endgame: acc.endgame + score.endgame,
-      total: acc.total + score.total
-    }), { auto: 0, teleop: 0, endgame: 0, total: 0 });
+      autoScore: acc.autoScore + score.autoScore,
+      teleopScore: acc.teleopScore + score.teleopScore,
+      endgameScore: acc.endgameScore + score.endgameScore,
+      totalScore: acc.totalScore + score.totalScore
+    }), { autoScore: 0, teleopScore: 0, endgameScore: 0, totalScore: 0 });
     
     const wins = teamMatches.filter(match => match.matchResult === 'win').length;
     
     return {
-      averageScore: Math.round(totalScores.total / teamMatches.length),
-      highScore: Math.max(...scores.map(s => s.total)),
+      averageScore: Math.round(totalScores.totalScore / teamMatches.length),
+      highScore: Math.max(...scores.map(s => s.totalScore)),
       winRate: Math.round((wins / teamMatches.length) * 100),
-      averageAuto: Math.round(totalScores.auto / teamMatches.length),
-      averageTeleop: Math.round(totalScores.teleop / teamMatches.length),
-      averageEndgame: Math.round(totalScores.endgame / teamMatches.length)
+      averageAuto: Math.round(totalScores.autoScore / teamMatches.length),
+      averageTeleop: Math.round(totalScores.teleopScore / teamMatches.length),
+      averageEndgame: Math.round(totalScores.endgameScore / teamMatches.length)
     };
   }, [teamMatches]);
   
@@ -379,7 +379,7 @@ export default function TeamDetailPage() {
                           {match.allianceColor.charAt(0).toUpperCase() + match.allianceColor.slice(1)}
                         </span>
                       </TableCell>
-                      <TableCell>{scores.total}</TableCell>
+                      <TableCell>{scores.totalScore}</TableCell>
                       <TableCell>
                         <span className={`px-2 py-1 rounded-full text-xs ${
                           match.matchResult === "win" 
@@ -391,9 +391,9 @@ export default function TeamDetailPage() {
                           {match.matchResult.charAt(0).toUpperCase() + match.matchResult.slice(1)}
                         </span>
                       </TableCell>
-                      <TableCell>{scores.auto}</TableCell>
-                      <TableCell>{scores.teleop}</TableCell>
-                      <TableCell>{scores.endgame}</TableCell>
+                      <TableCell>{scores.autoScore}</TableCell>
+                      <TableCell>{scores.teleopScore}</TableCell>
+                      <TableCell>{scores.endgameScore}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Button
