@@ -9,12 +9,14 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Slider } from "@/components/ui/slider"
 import { useToast } from "@/components/ui/use-toast"
 import { useScoutingStore } from '@/lib/store';
-import { memoizedCalculateScore } from '@/lib/utils';
 import { MatchScoutingData } from '@/lib/store';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Minus, Plus } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+
+// Import the calculate function directly instead of using memoization which could cause freezing
+import { calculateScore } from '@/lib/utils';
 
 const formSchema = z.object({
   matchNumber: z.number().min(1, "Match number must be at least 1"),
@@ -60,6 +62,15 @@ interface MatchScoutingFormProps {
 export function MatchScoutingForm({ initialData, onSubmit: customOnSubmit, submitLabel = "Save" }: MatchScoutingFormProps) {
   const { toast } = useToast();
   const { addMatchScoutingData } = useScoutingStore();
+  const [formError, setFormError] = useState(false);
+  const [scoreData, setScoreData] = useState({
+    autoScore: 0,
+    teleopScore: 0,
+    endgameScore: 0,
+    matchBonus: 0,
+    totalScore: 0
+  });
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: initialData ? {
@@ -115,60 +126,76 @@ export function MatchScoutingForm({ initialData, onSubmit: customOnSubmit, submi
     },
   });
 
-  // Calculate total score based on current form values
+  // Calculate total score in a safer way
   const calculateTotalScore = () => {
-    const values = form.getValues();
-    // Add dummy id and timestamp for score calculation and ensure required fields have values
-    const dataForScoring: MatchScoutingData = {
-      id: initialData?.id || 'temp-id',
-      timestamp: initialData?.timestamp || new Date().toISOString(),
-      matchNumber: values.matchNumber || 1,
-      teamNumber: values.teamNumber || 0,
-      allianceColor: values.allianceColor || 'red',
-      autoStartPosition: values.autoStartPosition || 'observation',
-      autoParkObservationZone: values.autoParkObservationZone || false,
-      autoSampleCollection: values.autoSampleCollection || 0,
-      autoNetZonePlacement: values.autoNetZonePlacement || 0,
-      autoLowBasket: values.autoLowBasket || 0,
-      autoHighBasket: values.autoHighBasket || 0,
-      autoSpecimenLowChamber: values.autoSpecimenLowChamber || 0,
-      autoHighChamber: values.autoHighChamber || 0,
-      teleopParkObservationZone: values.teleopParkObservationZone || false,
-      teleopSampleCollection: values.teleopSampleCollection || 0,
-      teleopNetZonePlacement: values.teleopNetZonePlacement || 0,
-      teleopLowBasket: values.teleopLowBasket || 0,
-      teleopHighBasket: values.teleopHighBasket || 0,
-      teleopSpecimenLowChamber: values.teleopSpecimenLowChamber || 0,
-      teleopHighChamber: values.teleopHighChamber || 0,
-      endgameAscentLevel: values.endgameAscentLevel || 'none',
-      matchResult: values.matchResult || 'loss',
-      robotSpeed: values.robotSpeed || 3,
-      robotReliability: values.robotReliability || 3,
-      robotManeuverability: values.robotManeuverability || 3,
-      notes: values.notes
-    };
-    
-    const scoreData = memoizedCalculateScore(dataForScoring);
-    
-    return {
-      autoScore: scoreData.auto,
-      teleopScore: scoreData.teleop,
-      endgameScore: scoreData.endgame,
-      matchBonus: scoreData.bonus,
-      totalScore: scoreData.total
-    };
+    try {
+      const values = form.getValues();
+      
+      // Add dummy id and timestamp for score calculation and ensure required fields have values
+      const dataForScoring: MatchScoutingData = {
+        id: initialData?.id || 'temp-id',
+        timestamp: initialData?.timestamp || new Date().toISOString(),
+        matchNumber: values.matchNumber || 1,
+        teamNumber: values.teamNumber || 0,
+        allianceColor: values.allianceColor || 'red',
+        autoStartPosition: values.autoStartPosition || 'observation',
+        autoParkObservationZone: values.autoParkObservationZone || false,
+        autoSampleCollection: values.autoSampleCollection || 0,
+        autoNetZonePlacement: values.autoNetZonePlacement || 0,
+        autoLowBasket: values.autoLowBasket || 0,
+        autoHighBasket: values.autoHighBasket || 0,
+        autoSpecimenLowChamber: values.autoSpecimenLowChamber || 0,
+        autoHighChamber: values.autoHighChamber || 0,
+        teleopParkObservationZone: values.teleopParkObservationZone || false,
+        teleopSampleCollection: values.teleopSampleCollection || 0,
+        teleopNetZonePlacement: values.teleopNetZonePlacement || 0,
+        teleopLowBasket: values.teleopLowBasket || 0,
+        teleopHighBasket: values.teleopHighBasket || 0,
+        teleopSpecimenLowChamber: values.teleopSpecimenLowChamber || 0,
+        teleopHighChamber: values.teleopHighChamber || 0,
+        endgameAscentLevel: values.endgameAscentLevel || 'none',
+        matchResult: values.matchResult || 'loss',
+        robotSpeed: values.robotSpeed || 3,
+        robotReliability: values.robotReliability || 3,
+        robotManeuverability: values.robotManeuverability || 3,
+        notes: values.notes
+      };
+      
+      // Use the non-memoized version to avoid cache issues
+      const score = calculateScore(dataForScoring);
+      setScoreData(score);
+    } catch (error) {
+      console.error("Error calculating score:", error);
+      // In case of error, don't crash
+    }
   };
 
-  // Update score whenever form values change
+  // Update score with debounce to avoid too many calculations
   useEffect(() => {
     const subscription = form.watch(() => {
-      form.trigger(); // This will validate the form and update errors
+      try {
+        // Delay calculation slightly to avoid freezing during rapid input
+        const timer = setTimeout(() => {
+          calculateTotalScore();
+          form.trigger();
+        }, 100);
+        
+        return () => clearTimeout(timer);
+      } catch (error) {
+        console.error("Error in form watch:", error);
+      }
     });
     
-    return () => subscription.unsubscribe();
+    calculateTotalScore(); // Initial calculation
+    
+    return () => {
+      try {
+        subscription.unsubscribe();
+      } catch (error) {
+        console.error("Error unsubscribing:", error);
+      }
+    };
   }, [form]);
-
-  const scoreData = calculateTotalScore();
 
   const handleSubmit = (data: FormData) => {
     try {
@@ -205,6 +232,7 @@ export function MatchScoutingForm({ initialData, onSubmit: customOnSubmit, submi
         
         addMatchScoutingData(matchData);
         form.reset();
+        calculateTotalScore(); // Reset score display after form reset
       }
       
       toast({
@@ -212,6 +240,8 @@ export function MatchScoutingForm({ initialData, onSubmit: customOnSubmit, submi
         description: "Match data saved successfully.",
       });
     } catch (error) {
+      console.error("Submit error:", error);
+      setFormError(true);
       toast({
         title: "Error",
         description: "There was a problem saving the match data.",
@@ -219,17 +249,40 @@ export function MatchScoutingForm({ initialData, onSubmit: customOnSubmit, submi
     }
   };
 
+  if (formError) {
+    return (
+      <div className="p-6 bg-red-50 rounded-lg border border-red-200 text-center">
+        <h3 className="text-lg font-medium text-red-800 mb-2">Form Error</h3>
+        <p className="text-red-600 mb-4">There was a problem loading the form.</p>
+        <Button 
+          variant="outline" 
+          onClick={() => window.location.href = '/scout'}
+        >
+          Return to Scout Page
+        </Button>
+      </div>
+    );
+  }
+
   // Helper for counter inputs
   const Counter = ({ name, label, points = '' }) => {
     const value = form.watch(name) || 0;
     
     const increment = () => {
-      form.setValue(name, value + 1, { shouldValidate: true });
+      try {
+        form.setValue(name, value + 1, { shouldValidate: true });
+      } catch (error) {
+        console.error(`Error incrementing ${name}:`, error);
+      }
     };
     
     const decrement = () => {
-      if (value > 0) {
-        form.setValue(name, value - 1, { shouldValidate: true });
+      try {
+        if (value > 0) {
+          form.setValue(name, value - 1, { shouldValidate: true });
+        }
+      } catch (error) {
+        console.error(`Error decrementing ${name}:`, error);
       }
     };
     
@@ -249,34 +302,26 @@ export function MatchScoutingForm({ initialData, onSubmit: customOnSubmit, submi
             </div>
           )}
         </div>
-        <div className="flex items-center">
+        <div className="flex items-center space-x-2">
           <Button 
             type="button" 
             variant="outline" 
-            size="icon"
-            className="h-9 w-9 rounded-r-none"
+            size="icon" 
+            className="h-8 w-8 rounded-full"
             onClick={decrement}
           >
-            <Minus className="h-4 w-4" />
+            <Minus className="h-3 w-3" />
           </Button>
-          <input
-            type="number"
-            value={value}
-            onChange={(e) => form.setValue(name, parseInt(e.target.value) || 0, { shouldValidate: true })}
-            className="h-9 px-3 py-2 text-center border-y border-gray-300 w-14"
-          />
+          <span className="w-8 text-center font-medium">{value}</span>
           <Button 
             type="button" 
             variant="outline" 
-            size="icon"
-            className="h-9 w-9 rounded-l-none"
+            size="icon" 
+            className="h-8 w-8 rounded-full"
             onClick={increment}
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-3 w-3" />
           </Button>
-        </div>
-        <div className="mt-1 text-xs text-gray-600 text-center">
-          {value > 0 && pointValue && `${value} × ${pointValue} = ${value * parseInt(pointValue)} points`}
         </div>
       </div>
     );
