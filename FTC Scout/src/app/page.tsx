@@ -26,31 +26,21 @@ export default function Home() {
         </p>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <Link
-            href="/scout"
-            className="flex items-center justify-center gap-2 bg-orange-500 text-white py-3 px-6 rounded-full shadow-md hover:bg-orange-600 transition-all duration-300"
-          >
-            <span>Start Scouting</span>
-            <ArrowRightIcon className="h-5 w-5" />
+          <Link href="/scout" className="bg-orange-500 text-white p-3 rounded">
+            Start Scouting
           </Link>
-          <Link
-            href="/analysis"
-            className="flex items-center justify-center gap-2 bg-white border border-orange-200 text-orange-600 py-3 px-6 rounded-full shadow-md hover:bg-orange-50 transition-all duration-300"
-          >
-            <span>View Analysis</span>
-            <ArrowRightIcon className="h-5 w-5" />
+          
+          <Link href="/analysis" className="bg-white border border-orange-200 text-orange-600 p-3 rounded">
+            View Analysis
           </Link>
-          <Link
-            href="/teams-api"
-            className="flex items-center justify-center gap-2 bg-blue-500 text-white py-3 px-6 rounded-full shadow-md hover:bg-blue-600 transition-all duration-300"
-          >
-            <span>API Demo</span>
-            <ArrowRightIcon className="h-5 w-5" />
+          
+          <Link href="/teams-api" className="bg-blue-500 text-white p-3 rounded">
+            API Demo
           </Link>
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
-          <div className="bg-white bg-opacity-80 p-6 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 hover:shadow-orange-100">
+          <div className="bg-white bg-opacity-80 p-6 rounded-2xl shadow-md">
             <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-orange-100 text-orange-500 mb-4">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M2 12h10"></path>
@@ -62,7 +52,7 @@ export default function Home() {
             <p className="text-gray-600">Track robot performance in matches for deeper insights</p>
           </div>
           
-          <div className="bg-white bg-opacity-80 p-6 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 hover:shadow-orange-100">
+          <div className="bg-white bg-opacity-80 p-6 rounded-2xl shadow-md">
             <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-orange-100 text-orange-500 mb-4">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
@@ -72,7 +62,7 @@ export default function Home() {
             <p className="text-gray-600">Compare robot designs and specialized mechanisms</p>
           </div>
           
-          <div className="bg-white bg-opacity-80 p-6 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 hover:shadow-orange-100">
+          <div className="bg-white bg-opacity-80 p-6 rounded-2xl shadow-md">
             <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-orange-100 text-orange-500 mb-4">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 17.75l-6.172-6.172a4 4 0 114.242-6.5 4 4 0 016.1 5.903L12 15.75l-4.242-4.242"></path>
