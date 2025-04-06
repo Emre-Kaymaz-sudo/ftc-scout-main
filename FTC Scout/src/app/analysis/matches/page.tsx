@@ -54,22 +54,22 @@ export default function MatchAnalysisPage() {
 
   // Calculate average scores
   const averageScores = useMemo(() => {
-    if (matchScoutingData.length === 0) return { auto: 0, teleop: 0, endgame: 0, total: 0 };
+    if (matchScoutingData.length === 0) return { autoScore: 0, teleopScore: 0, endgameScore: 0, totalScore: 0 };
     
     const totals = matchScoutingData.reduce((acc, match) => {
       const scores = memoizedCalculateScore(match);
-      acc.auto += scores.auto;
-      acc.teleop += scores.teleop;
-      acc.endgame += scores.endgame;
-      acc.total += scores.total;
+      acc.autoScore += scores.autoScore;
+      acc.teleopScore += scores.teleopScore;
+      acc.endgameScore += scores.endgameScore;
+      acc.totalScore += scores.totalScore;
       return acc;
-    }, { auto: 0, teleop: 0, endgame: 0, total: 0 });
+    }, { autoScore: 0, teleopScore: 0, endgameScore: 0, totalScore: 0 });
     
     return {
-      auto: Math.round(totals.auto / matchScoutingData.length),
-      teleop: Math.round(totals.teleop / matchScoutingData.length),
-      endgame: Math.round(totals.endgame / matchScoutingData.length),
-      total: Math.round(totals.total / matchScoutingData.length)
+      autoScore: Math.round(totals.autoScore / matchScoutingData.length),
+      teleopScore: Math.round(totals.teleopScore / matchScoutingData.length),
+      endgameScore: Math.round(totals.endgameScore / matchScoutingData.length),
+      totalScore: Math.round(totals.totalScore / matchScoutingData.length)
     };
   }, [matchScoutingData]);
 
@@ -91,7 +91,7 @@ export default function MatchAnalysisPage() {
         </div>
         <div className="bg-white rounded-lg shadow p-6 text-center">
           <div className="text-sm font-medium text-gray-500 mb-1">Avg Total Score</div>
-          <div className="text-3xl font-bold text-blue-600">{averageScores.total}</div>
+          <div className="text-3xl font-bold text-blue-600">{averageScores.totalScore}</div>
         </div>
         <div className="bg-white rounded-lg shadow p-6 text-center">
           <div className="text-sm font-medium text-gray-500 mb-1">Red Alliance Wins</div>
@@ -155,10 +155,10 @@ export default function MatchAnalysisPage() {
                           {match.allianceColor.charAt(0).toUpperCase() + match.allianceColor.slice(1)}
                         </span>
                       </TableCell>
-                      <TableCell>{scores.auto}</TableCell>
-                      <TableCell>{scores.teleop}</TableCell>
-                      <TableCell>{scores.endgame}</TableCell>
-                      <TableCell className="font-medium">{scores.total}</TableCell>
+                      <TableCell>{scores.autoScore}</TableCell>
+                      <TableCell>{scores.teleopScore}</TableCell>
+                      <TableCell>{scores.endgameScore}</TableCell>
+                      <TableCell className="font-medium">{scores.totalScore}</TableCell>
                       <TableCell>
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                           match.matchResult === 'win' ? 'bg-green-100 text-green-800' : 
@@ -199,12 +199,12 @@ export default function MatchAnalysisPage() {
               <h3 className="text-lg font-medium text-blue-700 mb-2">Autonomous</h3>
               <div className="flex justify-between items-center mb-2">
                 <span className="text-gray-600">Average Auto Score:</span>
-                <span className="font-bold">{averageScores.auto}</span>
+                <span className="font-bold">{averageScores.autoScore}</span>
               </div>
               <div className="bg-blue-100 h-2 rounded-full">
                 <div 
                   className="bg-blue-600 h-2 rounded-full" 
-                  style={{ width: `${(averageScores.auto / averageScores.total) * 100}%` }}
+                  style={{ width: `${(averageScores.autoScore / averageScores.totalScore) * 100}%` }}
                 ></div>
               </div>
             </div>
@@ -212,12 +212,12 @@ export default function MatchAnalysisPage() {
               <h3 className="text-lg font-medium text-green-700 mb-2">Teleop</h3>
               <div className="flex justify-between items-center mb-2">
                 <span className="text-gray-600">Average Teleop Score:</span>
-                <span className="font-bold">{averageScores.teleop}</span>
+                <span className="font-bold">{averageScores.teleopScore}</span>
               </div>
               <div className="bg-green-100 h-2 rounded-full">
                 <div 
                   className="bg-green-600 h-2 rounded-full" 
-                  style={{ width: `${(averageScores.teleop / averageScores.total) * 100}%` }}
+                  style={{ width: `${(averageScores.teleopScore / averageScores.totalScore) * 100}%` }}
                 ></div>
               </div>
             </div>
@@ -225,12 +225,12 @@ export default function MatchAnalysisPage() {
               <h3 className="text-lg font-medium text-purple-700 mb-2">Endgame</h3>
               <div className="flex justify-between items-center mb-2">
                 <span className="text-gray-600">Average Endgame Score:</span>
-                <span className="font-bold">{averageScores.endgame}</span>
+                <span className="font-bold">{averageScores.endgameScore}</span>
               </div>
               <div className="bg-purple-100 h-2 rounded-full">
                 <div 
                   className="bg-purple-600 h-2 rounded-full" 
-                  style={{ width: `${(averageScores.endgame / averageScores.total) * 100}%` }}
+                  style={{ width: `${(averageScores.endgameScore / averageScores.totalScore) * 100}%` }}
                 ></div>
               </div>
             </div>
