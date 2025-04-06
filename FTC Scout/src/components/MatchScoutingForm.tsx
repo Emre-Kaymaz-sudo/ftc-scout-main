@@ -191,38 +191,25 @@ export function MatchScoutingForm({ initialData, onSubmit: customOnSubmit, submi
 
   // Update score with debounce to avoid too many calculations
   useEffect(() => {
-    // Use a more efficient debounce approach
-    let debounceTimer: NodeJS.Timeout | null = null;
-    
+    // Use a simpler debounce approach
     const handleFormChange = () => {
-      // Clear previous timer if it exists
-      if (debounceTimer) {
-        clearTimeout(debounceTimer);
-      }
-      
-      // Set a new timer with a longer delay for better performance
-      debounceTimer = setTimeout(() => {
-        try {
+      try {
+        const timer = setTimeout(() => {
           calculateTotalScore(form, setScoreData, initialData);
-        } catch (error) {
-          console.error("Error in debounced calculation:", error);
-        }
-      }, 300); // Increased debounce time to reduce CPU load
+        }, 200);
+        return () => clearTimeout(timer);
+      } catch (error) {
+        console.error("Error in form watch:", error);
+      }
     };
     
     const subscription = form.watch(handleFormChange);
-    
-    // Initial calculation
     calculateTotalScore(form, setScoreData, initialData);
     
     return () => {
-      // Clean up on unmount
-      if (debounceTimer) {
-        clearTimeout(debounceTimer);
-      }
       subscription.unsubscribe();
     };
-  }, [form, initialData, setScoreData]);
+  }, [form, initialData]);
 
   const handleSubmit = (data: FormData) => {
     try {
@@ -291,29 +278,17 @@ export function MatchScoutingForm({ initialData, onSubmit: customOnSubmit, submi
     );
   }
 
-  // Optimize the Counter component to reduce rerenders
-  const Counter = React.useCallback(({ name, label, points = '' }) => {
+  // Simplify Counter component to ensure button clicks register properly
+  const Counter = ({ name, label, points = '' }) => {
     const value = form.watch(name) || 0;
     
     const increment = () => {
-      try {
-        form.setValue(name, value + 1, { shouldValidate: false });
-        // Manual trigger form update with debounce
-        setTimeout(() => form.trigger(name), 100);
-      } catch (error) {
-        console.error(`Error incrementing ${name}:`, error);
-      }
+      form.setValue(name, value + 1);
     };
     
     const decrement = () => {
-      try {
-        if (value > 0) {
-          form.setValue(name, value - 1, { shouldValidate: false });
-          // Manual trigger form update with debounce
-          setTimeout(() => form.trigger(name), 100);
-        }
-      } catch (error) {
-        console.error(`Error decrementing ${name}:`, error);
+      if (value > 0) {
+        form.setValue(name, value - 1);
       }
     };
     
@@ -356,40 +331,36 @@ export function MatchScoutingForm({ initialData, onSubmit: customOnSubmit, submi
         </div>
       </div>
     );
-  }, [form]);
+  };
 
-  // Score summary card - memoized to avoid unnecessary re-renders
-  const ScoreSummary = React.memo(() => (
-    <div className="bg-white rounded-lg border p-4 mb-6">
-      <h3 className="text-lg font-medium mb-3">Score Summary</h3>
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-        <div className="bg-blue-50 p-3 rounded-md text-center">
-          <div className="text-sm text-gray-600">Auto</div>
-          <div className="text-2xl font-bold text-blue-600">{scoreData.autoScore}</div>
-          <div className="text-xs text-gray-500">(x2 in total)</div>
-        </div>
-        <div className="bg-blue-50 p-3 rounded-md text-center">
-          <div className="text-sm text-gray-600">Teleop</div>
-          <div className="text-2xl font-bold text-blue-600">{scoreData.teleopScore}</div>
-        </div>
-        <div className="bg-blue-50 p-3 rounded-md text-center">
-          <div className="text-sm text-gray-600">Endgame</div>
-          <div className="text-2xl font-bold text-blue-600">{scoreData.endgameScore}</div>
-        </div>
-        <div className="col-span-2 bg-blue-100 p-3 rounded-md text-center">
-          <div className="text-sm text-gray-600">Total</div>
-          <div className="text-3xl font-bold text-blue-700">{scoreData.totalScore}</div>
-          <div className="text-xs text-gray-500">Estimated Match Score<span className="text-blue-700">*</span></div>
-        </div>
-      </div>
-      <div className="mt-1 text-xs text-gray-500 text-right"><span className="text-blue-700">*</span>Auto points doubled</div>
-    </div>
-  ));
-  
-  // Memoize the entire form elements to avoid unnecessary re-renders
-  const formContent = useMemo(() => (
+  // Render form directly without the lazy loading and memoization
+  return (
     <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-      <ScoreSummary />
+      {/* Score Summary */}
+      <div className="bg-white rounded-lg border p-4 mb-6">
+        <h3 className="text-lg font-medium mb-3">Score Summary</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+          <div className="bg-blue-50 p-3 rounded-md text-center">
+            <div className="text-sm text-gray-600">Auto</div>
+            <div className="text-2xl font-bold text-blue-600">{scoreData.autoScore}</div>
+            <div className="text-xs text-gray-500">(x2 in total)</div>
+          </div>
+          <div className="bg-blue-50 p-3 rounded-md text-center">
+            <div className="text-sm text-gray-600">Teleop</div>
+            <div className="text-2xl font-bold text-blue-600">{scoreData.teleopScore}</div>
+          </div>
+          <div className="bg-blue-50 p-3 rounded-md text-center">
+            <div className="text-sm text-gray-600">Endgame</div>
+            <div className="text-2xl font-bold text-blue-600">{scoreData.endgameScore}</div>
+          </div>
+          <div className="col-span-2 bg-blue-100 p-3 rounded-md text-center">
+            <div className="text-sm text-gray-600">Total</div>
+            <div className="text-3xl font-bold text-blue-700">{scoreData.totalScore}</div>
+            <div className="text-xs text-gray-500">Estimated Match Score<span className="text-blue-700">*</span></div>
+          </div>
+        </div>
+        <div className="mt-1 text-xs text-gray-500 text-right"><span className="text-blue-700">*</span>Auto points doubled</div>
+      </div>
       
       {/* Match information section */}
       <div className="space-y-4 bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
@@ -687,19 +658,5 @@ export function MatchScoutingForm({ initialData, onSubmit: customOnSubmit, submi
         {submitLabel}
       </Button>
     </form>
-  ), [form, scoreData.totalScore]);
-  
-  // Lazy load the form to improve initial rendering
-  const [isFormReady, setIsFormReady] = useState(false);
-  
-  useEffect(() => {
-    // Delay form rendering to improve initial page load
-    const timer = setTimeout(() => {
-      setIsFormReady(true);
-    }, 100);
-    
-    return () => clearTimeout(timer);
-  }, []);
-
-  return isFormReady ? formContent : null;
+  );
 } 
