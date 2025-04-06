@@ -7,18 +7,24 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import React from 'react';
 
+// Define props type for ErrorBoundary
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+  onError?: () => void;
+}
+
 // Error boundary component
-class ErrorBoundary extends React.Component {
-  constructor(props) {
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, { hasError: boolean }> {
+  constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(error: Error) {
     return { hasError: true };
   }
 
-  componentDidCatch(error, errorInfo) {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error("Form error:", error, errorInfo);
     if (this.props.onError) {
       this.props.onError();
