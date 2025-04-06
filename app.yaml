@@ -1,0 +1,18 @@
+name: ftc-scout
+services:
+- name: web
+  github:
+    branch: main
+    deploy_on_push: true
+    repo: YOUR_GITHUB_USERNAME/ftc-scout
+  build_command: yarn build
+  run_command: yarn start
+  envs:
+  - key: NODE_ENV
+    scope: RUN_TIME
+    value: production
+  http_port: 3000
+  instance_count: 1
+  instance_size_slug: basic-xs
+  routes:
+  - path: / 

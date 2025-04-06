@@ -1,0 +1,130 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Force CSS refresh */
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 20 14.3% 4.1%;
+
+    /* Turuncu tema renkleri */
+    --primary: 24 96% 53%; /* Turuncu */
+    --primary-foreground: 0 0% 100%; /* Beyaz */
+
+    --secondary: 24 96% 98%; /* Açık turuncu */
+    --secondary-foreground: 24 70% 40%; /* Koyu turuncu */
+
+    --card: 0 0% 100%;
+    --card-foreground: 20 14.3% 4.1%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 14.3% 4.1%;
+
+    --muted: 24 5.9% 90%;
+    --muted-foreground: 20 8.9% 45.7%;
+
+    --accent: 24 9.5% 95%;
+    --accent-foreground: 24 70% 45%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 20 0% 98%;
+
+    --border: 20 5.9% 90%;
+    --input: 20 5.9% 90%;
+    --ring: 24 96% 53%;
+
+    --radius: 0.75rem;
+
+    /* İlerleme çubuğu ve görsel öğeler için ek renkler */
+    --progress-bg: 24 96% 95%;
+    --progress-fill: 24 96% 53%;
+    --success: 142 71% 45%;
+    --info: 200 98% 50%;
+    --warning: 38 92% 50%;
+  }
+
+  .dark {
+    --background: 20 14.3% 4.1%;
+    --foreground: 0 0% 98%;
+
+    --primary: 24 96% 53%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 24 30% 20%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 12 6.5% 15.1%;
+    --muted-foreground: 24 5.4% 63.9%;
+
+    --accent: 12 6.5% 15.1%;
+    --accent-foreground: 0 0% 98%;
+
+    --card: 20 14.3% 4.1%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 20 14.3% 4.1%;
+    --popover-foreground: 0 0% 98%;
+
+    --border: 24 9.8% 10%;
+    --input: 24 9.8% 10%;
+    --ring: 24 96% 64%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /* Modern stil için ek özelleştirmeler */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-medium tracking-tight;
+  }
+
+  .shadow-modern {
+    @apply shadow-lg shadow-orange-50;
+  }
+
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-lg hover:shadow-orange-50;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/90;
+  }
+
+  .btn-outline {
+    @apply border border-input bg-background hover:bg-accent hover:text-accent-foreground;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors 
+    focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50;
+  }
+  
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+  }
+  
+  .card {
+    @apply rounded-lg border bg-white shadow-sm;
+  }
+} 
