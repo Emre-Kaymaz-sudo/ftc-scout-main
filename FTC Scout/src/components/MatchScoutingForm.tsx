@@ -162,8 +162,8 @@ export function MatchScoutingForm({ initialData, onSubmit: customOnSubmit, submi
       };
       
       // Use the non-memoized version to avoid cache issues
-      const score = calculateScore(dataForScoring);
-      setScoreData(score);
+      const result = calculateScore(dataForScoring);
+      setScoreData(result);
     } catch (error) {
       console.error("Error calculating score:", error);
       // In case of error, don't crash

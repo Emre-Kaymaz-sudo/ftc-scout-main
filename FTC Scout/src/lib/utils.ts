@@ -46,12 +46,12 @@ export function calculateScore(match: MatchScoutingData) {
   const doubledAutoScore = autoScore * 2;
   
   return {
-    auto: autoScore,
-    teleop: teleopScore,
-    endgame: endgameScore,
-    bonus: matchBonus,
+    autoScore: autoScore,
+    teleopScore: teleopScore,
+    endgameScore: endgameScore,
+    matchBonus: matchBonus,
     // Total includes doubled autonomous score
-    total: doubledAutoScore + teleopScore + endgameScore
+    totalScore: doubledAutoScore + teleopScore + endgameScore
   };
 }
 
