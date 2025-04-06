@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Database, BarChart, Home, Server } from 'lucide-react';
+import { Database, BarChart, Home } from 'lucide-react';
 
 export function Navbar() {
   const pathname = usePathname();
@@ -52,17 +52,6 @@ export function Navbar() {
             >
               <BarChart size={18} />
               <span className="hidden sm:inline">Analysis</span>
-            </Link>
-            <Link
-              href="/teams-api"
-              className={`rounded-full px-4 py-2 text-sm font-medium flex items-center gap-2 transition-colors ${
-                pathname.startsWith('/teams-api')
-                  ? 'bg-orange-50 text-orange-600'
-                  : 'text-gray-600 hover:bg-orange-50 hover:text-orange-600'
-              }`}
-            >
-              <Server size={18} />
-              <span className="hidden sm:inline">API</span>
             </Link>
           </div>
         </div>

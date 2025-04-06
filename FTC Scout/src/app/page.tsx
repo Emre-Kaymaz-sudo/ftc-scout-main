@@ -25,17 +25,13 @@ export default function Home() {
           your alliance selections.
         </p>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
           <Link href="/scout" className="bg-orange-500 text-white p-3 rounded">
             Start Scouting
           </Link>
           
           <Link href="/analysis" className="bg-white border border-orange-200 text-orange-600 p-3 rounded">
             View Analysis
-          </Link>
-          
-          <Link href="/teams-api" className="bg-blue-500 text-white p-3 rounded">
-            API Demo
           </Link>
         </div>
         

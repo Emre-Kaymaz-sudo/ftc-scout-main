@@ -80,6 +80,16 @@ interface ScoutingStore {
   clearPitScoutingData: () => void;
 }
 
+// Helper function to generate a safe UUID
+const generateSafeId = () => {
+  try {
+    return crypto.randomUUID();
+  } catch (error) {
+    console.error('Failed to generate UUID with crypto.randomUUID()', error);
+    return `id-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+  }
+};
+
 export const useScoutingStore = create<ScoutingStore>()(
   persist(
     (set) => ({
@@ -89,7 +99,7 @@ export const useScoutingStore = create<ScoutingStore>()(
         try {
           const newData = {
             ...data,
-            id: crypto.randomUUID(),
+            id: generateSafeId(),
             timestamp: new Date().toISOString(),
           };
           set((state) => ({
@@ -97,14 +107,27 @@ export const useScoutingStore = create<ScoutingStore>()(
           }));
         } catch (error) {
           console.error('Failed to add match scouting data:', error);
-          throw error;
+          // Even when an error occurs, we don't want to completely fail
+          // We'll try with a basic object that has minimal requirements
+          try {
+            const fallbackData = {
+              ...data,
+              id: `fallback-${Date.now()}`,
+              timestamp: new Date().toISOString(),
+            };
+            set((state) => ({
+              matchScoutingData: [...state.matchScoutingData, fallbackData],
+            }));
+          } catch (fallbackError) {
+            console.error('Even fallback data failed:', fallbackError);
+          }
         }
       },
       addPitScoutingData: (data) => {
         try {
           const newData = {
             ...data,
-            id: crypto.randomUUID(),
+            id: generateSafeId(),
             timestamp: new Date().toISOString(),
           };
           set((state) => ({
@@ -112,7 +135,19 @@ export const useScoutingStore = create<ScoutingStore>()(
           }));
         } catch (error) {
           console.error('Failed to add pit scouting data:', error);
-          throw error;
+          // Even when an error occurs, we don't want to completely fail
+          try {
+            const fallbackData = {
+              ...data,
+              id: `fallback-${Date.now()}`,
+              timestamp: new Date().toISOString(),
+            };
+            set((state) => ({
+              pitScoutingData: [...state.pitScoutingData, fallbackData],
+            }));
+          } catch (fallbackError) {
+            console.error('Even fallback data failed:', fallbackError);
+          }
         }
       },
       clearMatchScoutingData: () => {
@@ -120,7 +155,7 @@ export const useScoutingStore = create<ScoutingStore>()(
           set({ matchScoutingData: [] });
         } catch (error) {
           console.error('Failed to clear match scouting data:', error);
-          throw error;
+          // Silent fail - not critical if clearing fails
         }
       },
       clearPitScoutingData: () => {
@@ -128,7 +163,7 @@ export const useScoutingStore = create<ScoutingStore>()(
           set({ pitScoutingData: [] });
         } catch (error) {
           console.error('Failed to clear pit scouting data:', error);
-          throw error;
+          // Silent fail - not critical if clearing fails
         }
       },
     }),
