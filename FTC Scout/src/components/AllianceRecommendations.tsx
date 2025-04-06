@@ -39,10 +39,10 @@ export function AllianceRecommendations() {
       
       if (teamMatches.length > 0) {
         const scores = teamMatches.map(match => memoizedCalculateScore(match));
-        autoAvg = Math.round(scores.reduce((sum, score) => sum + score.auto, 0) / scores.length);
-        teleopAvg = Math.round(scores.reduce((sum, score) => sum + score.teleop, 0) / scores.length);
-        endgameAvg = Math.round(scores.reduce((sum, score) => sum + score.endgame, 0) / scores.length);
-        totalAvg = Math.round(scores.reduce((sum, score) => sum + score.total, 0) / scores.length);
+        autoAvg = Math.round(scores.reduce((sum, score) => sum + score.autoScore, 0) / scores.length);
+        teleopAvg = Math.round(scores.reduce((sum, score) => sum + score.teleopScore, 0) / scores.length);
+        endgameAvg = Math.round(scores.reduce((sum, score) => sum + score.endgameScore, 0) / scores.length);
+        totalAvg = Math.round(scores.reduce((sum, score) => sum + score.totalScore, 0) / scores.length);
       }
       
       // Get capabilities
@@ -73,10 +73,10 @@ export function AllianceRecommendations() {
         teamNumber,
         teamName: pitData?.teamName || `Team ${teamNumber}`,
         scores: {
-          auto: autoAvg,
-          teleop: teleopAvg,
-          endgame: endgameAvg,
-          total: totalAvg
+          autoScore: autoAvg,
+          teleopScore: teleopAvg,
+          endgameScore: endgameAvg,
+          totalScore: totalAvg
         },
         capabilities,
         preferredRole: pitData?.preferredRole || "unknown",
@@ -98,10 +98,10 @@ export function AllianceRecommendations() {
     // Helper function to calculate alliance score
     const calculateAllianceScore = (teams) => {
       return {
-        totalScore: teams.reduce((sum, team) => sum + team.scores.total, 0),
-        auto: teams.reduce((sum, team) => sum + team.scores.auto, 0),
-        teleop: teams.reduce((sum, team) => sum + team.scores.teleop, 0),
-        endgame: teams.reduce((sum, team) => sum + team.scores.endgame, 0)
+        totalScore: teams.reduce((sum, team) => sum + team.scores.totalScore, 0),
+        autoScore: teams.reduce((sum, team) => sum + team.scores.autoScore, 0),
+        teleopScore: teams.reduce((sum, team) => sum + team.scores.teleopScore, 0),
+        endgameScore: teams.reduce((sum, team) => sum + team.scores.endgameScore, 0)
       };
     };
     
@@ -121,7 +121,7 @@ export function AllianceRecommendations() {
     };
     
     // Sort teams by total score (for initial seed)
-    const sortedTeams = [...teamPerformance].sort((a, b) => b.scores.total - a.scores.total);
+    const sortedTeams = [...teamPerformance].sort((a, b) => b.scores.totalScore - a.scores.totalScore);
     
     // Create a recommendations array with different prioritizations
     const recommendations = [];
@@ -138,13 +138,13 @@ export function AllianceRecommendations() {
     });
     
     // 2. Best Balanced Alliance (Mix of auto, teleop, endgame strengths)
-    const autoStrong = [...teamPerformance].sort((a, b) => b.scores.auto - a.scores.auto)[0];
+    const autoStrong = [...teamPerformance].sort((a, b) => b.scores.autoScore - a.scores.autoScore)[0];
     const teleopStrong = [...teamPerformance]
       .filter(t => t.teamNumber !== autoStrong.teamNumber)
-      .sort((a, b) => b.scores.teleop - a.scores.teleop)[0];
+      .sort((a, b) => b.scores.teleopScore - a.scores.teleopScore)[0];
     const endgameStrong = [...teamPerformance]
       .filter(t => t.teamNumber !== autoStrong.teamNumber && t.teamNumber !== teleopStrong.teamNumber)
-      .sort((a, b) => b.scores.endgame - a.scores.endgame)[0];
+      .sort((a, b) => b.scores.endgameScore - a.scores.endgameScore)[0];
     
     const balancedAlliance = [autoStrong, teleopStrong, endgameStrong];
     recommendations.push({
