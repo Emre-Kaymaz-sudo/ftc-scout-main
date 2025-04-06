@@ -59,23 +59,23 @@ export function AllianceSimulator() {
     // Calculate average scores
     const teamAverages = allianceTeams.map(teamNumber => {
       const teamMatches = matchScoutingData.filter(match => match.teamNumber === teamNumber);
-      if (teamMatches.length === 0) return { auto: 0, teleop: 0, endgame: 0, total: 0 };
+      if (teamMatches.length === 0) return { autoScore: 0, teleopScore: 0, endgameScore: 0, totalScore: 0 };
       
       const scores = teamMatches.map(match => memoizedCalculateScore(match));
       return {
-        auto: Math.round(scores.reduce((sum, score) => sum + score.auto, 0) / scores.length),
-        teleop: Math.round(scores.reduce((sum, score) => sum + score.teleop, 0) / scores.length),
-        endgame: Math.round(scores.reduce((sum, score) => sum + score.endgame, 0) / scores.length),
-        total: Math.round(scores.reduce((sum, score) => sum + score.total, 0) / scores.length)
+        autoScore: Math.round(scores.reduce((sum, score) => sum + score.autoScore, 0) / scores.length),
+        teleopScore: Math.round(scores.reduce((sum, score) => sum + score.teleopScore, 0) / scores.length),
+        endgameScore: Math.round(scores.reduce((sum, score) => sum + score.endgameScore, 0) / scores.length),
+        totalScore: Math.round(scores.reduce((sum, score) => sum + score.totalScore, 0) / scores.length)
       };
     });
 
     // Calculate total alliance score potential
     const allianceScore = {
-      auto: teamAverages.reduce((sum, team) => sum + team.auto, 0),
-      teleop: teamAverages.reduce((sum, team) => sum + team.teleop, 0),
-      endgame: teamAverages.reduce((sum, team) => sum + team.endgame, 0),
-      total: teamAverages.reduce((sum, team) => sum + team.total, 0)
+      autoScore: teamAverages.reduce((sum, team) => sum + team.autoScore, 0),
+      teleopScore: teamAverages.reduce((sum, team) => sum + team.teleopScore, 0),
+      endgameScore: teamAverages.reduce((sum, team) => sum + team.endgameScore, 0),
+      totalScore: teamAverages.reduce((sum, team) => sum + team.totalScore, 0)
     };
 
     // Get top performance metrics
@@ -226,7 +226,7 @@ export function AllianceSimulator() {
                   <CardTitle className="text-lg">Estimated Score</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-blue-600">{allianceMetrics.allianceScore.total}</div>
+                  <div className="text-3xl font-bold text-blue-600">{allianceMetrics.allianceScore.totalScore}</div>
                   <div className="text-sm text-gray-500 mt-1">Combined match average</div>
                 </CardContent>
               </Card>
@@ -286,19 +286,19 @@ export function AllianceSimulator() {
                 <ul className="space-y-3">
                   <li className="flex justify-between">
                     <span>Auto:</span>
-                    <span className="font-medium">{allianceMetrics.allianceScore.auto}</span>
+                    <span className="font-medium">{allianceMetrics.allianceScore.autoScore}</span>
                   </li>
                   <li className="flex justify-between">
                     <span>Teleop:</span>
-                    <span className="font-medium">{allianceMetrics.allianceScore.teleop}</span>
+                    <span className="font-medium">{allianceMetrics.allianceScore.teleopScore}</span>
                   </li>
                   <li className="flex justify-between">
                     <span>Endgame:</span>
-                    <span className="font-medium">{allianceMetrics.allianceScore.endgame}</span>
+                    <span className="font-medium">{allianceMetrics.allianceScore.endgameScore}</span>
                   </li>
                   <li className="flex justify-between pt-2 border-t">
                     <span className="font-medium">Total:</span>
-                    <span className="font-bold">{allianceMetrics.allianceScore.total}</span>
+                    <span className="font-bold">{allianceMetrics.allianceScore.totalScore}</span>
                   </li>
                 </ul>
               </div>
