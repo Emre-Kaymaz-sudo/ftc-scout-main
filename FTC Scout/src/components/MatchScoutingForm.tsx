@@ -8,12 +8,12 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Slider } from "@/components/ui/slider"
 import { useToast } from "@/components/ui/use-toast"
-import { useScoutingStore } from '@/lib/store';
-import { MatchScoutingData } from '@/lib/store';
+import { useScoutingStore, MatchScoutingData } from '@/lib/store';
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Minus, Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import React from "react";
 
 // Import the calculate function directly instead of using memoization which could cause freezing
 import { calculateScore } from '@/lib/utils';
@@ -126,10 +126,22 @@ export function MatchScoutingForm({ initialData, onSubmit: customOnSubmit, submi
     },
   });
 
-  // Calculate total score in a safer way
-  const calculateTotalScore = () => {
+  // Calculate total score in a safer and more optimized way
+  const calculateTotalScore = (form, setScoreData, initialData) => {
     try {
       const values = form.getValues();
+      
+      // Skip calculation if critical values are missing
+      if (values.teamNumber === undefined) {
+        setScoreData({
+          autoScore: 0,
+          teleopScore: 0,
+          endgameScore: 0,
+          matchBonus: 0,
+          totalScore: 0
+        });
+        return;
+      }
       
       // Add dummy id and timestamp for score calculation and ensure required fields have values
       const dataForScoring: MatchScoutingData = {
@@ -161,41 +173,56 @@ export function MatchScoutingForm({ initialData, onSubmit: customOnSubmit, submi
         notes: values.notes
       };
       
-      // Use the non-memoized version to avoid cache issues
+      // Use direct calculation to avoid any memoization issues
       const result = calculateScore(dataForScoring);
       setScoreData(result);
     } catch (error) {
       console.error("Error calculating score:", error);
-      // In case of error, don't crash
+      // In case of error, don't crash but set defaults
+      setScoreData({
+        autoScore: 0,
+        teleopScore: 0,
+        endgameScore: 0,
+        matchBonus: 0,
+        totalScore: 0
+      });
     }
   };
 
   // Update score with debounce to avoid too many calculations
   useEffect(() => {
-    const subscription = form.watch(() => {
-      try {
-        // Delay calculation slightly to avoid freezing during rapid input
-        const timer = setTimeout(() => {
-          calculateTotalScore();
-          form.trigger();
-        }, 100);
-        
-        return () => clearTimeout(timer);
-      } catch (error) {
-        console.error("Error in form watch:", error);
-      }
-    });
+    // Use a more efficient debounce approach
+    let debounceTimer: NodeJS.Timeout | null = null;
     
-    calculateTotalScore(); // Initial calculation
+    const handleFormChange = () => {
+      // Clear previous timer if it exists
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+      
+      // Set a new timer with a longer delay for better performance
+      debounceTimer = setTimeout(() => {
+        try {
+          calculateTotalScore(form, setScoreData, initialData);
+        } catch (error) {
+          console.error("Error in debounced calculation:", error);
+        }
+      }, 300); // Increased debounce time to reduce CPU load
+    };
+    
+    const subscription = form.watch(handleFormChange);
+    
+    // Initial calculation
+    calculateTotalScore(form, setScoreData, initialData);
     
     return () => {
-      try {
-        subscription.unsubscribe();
-      } catch (error) {
-        console.error("Error unsubscribing:", error);
+      // Clean up on unmount
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
       }
+      subscription.unsubscribe();
     };
-  }, [form]);
+  }, [form, initialData, setScoreData]);
 
   const handleSubmit = (data: FormData) => {
     try {
@@ -232,7 +259,7 @@ export function MatchScoutingForm({ initialData, onSubmit: customOnSubmit, submi
         
         addMatchScoutingData(matchData);
         form.reset();
-        calculateTotalScore(); // Reset score display after form reset
+        calculateTotalScore(form, setScoreData, initialData); // Reset score display after form reset
       }
       
       toast({
@@ -264,13 +291,15 @@ export function MatchScoutingForm({ initialData, onSubmit: customOnSubmit, submi
     );
   }
 
-  // Helper for counter inputs
-  const Counter = ({ name, label, points = '' }) => {
+  // Optimize the Counter component to reduce rerenders
+  const Counter = React.useCallback(({ name, label, points = '' }) => {
     const value = form.watch(name) || 0;
     
     const increment = () => {
       try {
-        form.setValue(name, value + 1, { shouldValidate: true });
+        form.setValue(name, value + 1, { shouldValidate: false });
+        // Manual trigger form update with debounce
+        setTimeout(() => form.trigger(name), 100);
       } catch (error) {
         console.error(`Error incrementing ${name}:`, error);
       }
@@ -279,7 +308,9 @@ export function MatchScoutingForm({ initialData, onSubmit: customOnSubmit, submi
     const decrement = () => {
       try {
         if (value > 0) {
-          form.setValue(name, value - 1, { shouldValidate: true });
+          form.setValue(name, value - 1, { shouldValidate: false });
+          // Manual trigger form update with debounce
+          setTimeout(() => form.trigger(name), 100);
         }
       } catch (error) {
         console.error(`Error decrementing ${name}:`, error);
@@ -325,55 +356,42 @@ export function MatchScoutingForm({ initialData, onSubmit: customOnSubmit, submi
         </div>
       </div>
     );
-  };
+  }, [form]);
 
-  return (
-    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-      {/* Score Summary (at the top for visibility) */}
-      <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl border border-blue-200 overflow-hidden shadow-sm">
-        <div className="bg-blue-600 py-3 px-4">
-          <h3 className="text-md font-medium text-white">Score Summary</h3>
+  // Score summary card - memoized to avoid unnecessary re-renders
+  const ScoreSummary = React.memo(() => (
+    <div className="bg-white rounded-lg border p-4 mb-6">
+      <h3 className="text-lg font-medium mb-3">Score Summary</h3>
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+        <div className="bg-blue-50 p-3 rounded-md text-center">
+          <div className="text-sm text-gray-600">Auto</div>
+          <div className="text-2xl font-bold text-blue-600">{scoreData.autoScore}</div>
+          <div className="text-xs text-gray-500">(x2 in total)</div>
         </div>
-        <div className="p-4">
-          <div className="grid grid-cols-4 gap-4">
-            <div className="bg-white rounded-lg p-3 shadow-sm flex flex-col items-center justify-center transition-all hover:shadow-md">
-              <div className="text-xs uppercase font-semibold text-blue-600 mb-1">Auto</div>
-              <div className="text-2xl font-bold">{scoreData.autoScore}</div>
-              <div className="text-xs font-medium text-green-600">(x2 in total)</div>
-            </div>
-            <div className="bg-white rounded-lg p-3 shadow-sm flex flex-col items-center justify-center transition-all hover:shadow-md">
-              <div className="text-xs uppercase font-semibold text-blue-600 mb-1">Teleop</div>
-              <div className="text-2xl font-bold">{scoreData.teleopScore}</div>
-            </div>
-            <div className="bg-white rounded-lg p-3 shadow-sm flex flex-col items-center justify-center transition-all hover:shadow-md">
-              <div className="text-xs uppercase font-semibold text-blue-600 mb-1">Endgame</div>
-              <div className="text-2xl font-bold">{scoreData.endgameScore}</div>
-            </div>
-            <div className="bg-blue-600 rounded-lg p-3 shadow-sm flex flex-col items-center justify-center transition-all hover:shadow-md">
-              <div className="text-xs uppercase font-semibold text-white mb-1">Total</div>
-              <div className="text-2xl font-bold text-white">{scoreData.totalScore}</div>
-            </div>
-          </div>
-          <div className="mt-3 pt-3 border-t border-blue-200 flex justify-between items-center text-sm text-blue-700">
-            <div className="flex items-center">
-              <span className="font-medium">Estimated Match Score</span>
-              <span className="ml-3 text-xs bg-green-100 text-green-800 py-1 px-2 rounded-full">
-                Auto points doubled
-              </span>
-              {scoreData.matchBonus > 0 && (
-                <span className="ml-3 text-xs text-gray-600">
-                  Match result: {form.watch("matchResult")} (not included in total)
-                </span>
-              )}
-            </div>
-            <div>
-              <span className="text-xs bg-blue-100 py-1 px-2 rounded-full">FTC Centerstage 2023-2024</span>
-            </div>
-          </div>
+        <div className="bg-blue-50 p-3 rounded-md text-center">
+          <div className="text-sm text-gray-600">Teleop</div>
+          <div className="text-2xl font-bold text-blue-600">{scoreData.teleopScore}</div>
+        </div>
+        <div className="bg-blue-50 p-3 rounded-md text-center">
+          <div className="text-sm text-gray-600">Endgame</div>
+          <div className="text-2xl font-bold text-blue-600">{scoreData.endgameScore}</div>
+        </div>
+        <div className="col-span-2 bg-blue-100 p-3 rounded-md text-center">
+          <div className="text-sm text-gray-600">Total</div>
+          <div className="text-3xl font-bold text-blue-700">{scoreData.totalScore}</div>
+          <div className="text-xs text-gray-500">Estimated Match Score<span className="text-blue-700">*</span></div>
         </div>
       </div>
-
-      {/* Match Information */}
+      <div className="mt-1 text-xs text-gray-500 text-right"><span className="text-blue-700">*</span>Auto points doubled</div>
+    </div>
+  ));
+  
+  // Memoize the entire form elements to avoid unnecessary re-renders
+  const formContent = useMemo(() => (
+    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+      <ScoreSummary />
+      
+      {/* Match information section */}
       <div className="space-y-4 bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
         <h3 className="text-lg font-medium border-b pb-2">Match Information</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -669,5 +687,19 @@ export function MatchScoutingForm({ initialData, onSubmit: customOnSubmit, submi
         {submitLabel}
       </Button>
     </form>
-  );
+  ), [form, scoreData.totalScore]);
+  
+  // Lazy load the form to improve initial rendering
+  const [isFormReady, setIsFormReady] = useState(false);
+  
+  useEffect(() => {
+    // Delay form rendering to improve initial page load
+    const timer = setTimeout(() => {
+      setIsFormReady(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  return isFormReady ? formContent : null;
 } 
