@@ -25,7 +25,7 @@ export default function Home() {
           your alliance selections.
         </p>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           <Link
             href="/scout"
             className="flex items-center justify-center gap-2 bg-orange-500 text-white py-3 px-6 rounded-full shadow-md hover:bg-orange-600 transition-all duration-300"
@@ -38,6 +38,13 @@ export default function Home() {
             className="flex items-center justify-center gap-2 bg-white border border-orange-200 text-orange-600 py-3 px-6 rounded-full shadow-md hover:bg-orange-50 transition-all duration-300"
           >
             <span>View Analysis</span>
+            <ArrowRightIcon className="h-5 w-5" />
+          </Link>
+          <Link
+            href="/teams-api"
+            className="flex items-center justify-center gap-2 bg-blue-500 text-white py-3 px-6 rounded-full shadow-md hover:bg-blue-600 transition-all duration-300"
+          >
+            <span>API Demo</span>
             <ArrowRightIcon className="h-5 w-5" />
           </Link>
         </div>
